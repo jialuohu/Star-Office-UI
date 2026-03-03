@@ -220,6 +220,74 @@
             transform: translateY(0);
             filter: brightness(0.94);
         }
+        /* Electron: closer-to-native mac traffic lights */
+        body.electron-shell #window-controls {
+            display: flex !important;
+            gap: 7px;
+            top: calc(env(safe-area-inset-top, 0px) + 11px);
+            left: 13px;
+        }
+        body.electron-shell .traffic-btn {
+            width: 12px;
+            height: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.28);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.28) inset,
+                0 0 0 1px rgba(0, 0, 0, 0.06);
+            transform: none;
+        }
+        body.electron-shell .traffic-btn.close {
+            background: radial-gradient(circle at 35% 30%, #ff8a82 0%, #ff5f57 68%);
+        }
+        body.electron-shell .traffic-btn.min {
+            background: radial-gradient(circle at 35% 30%, #ffd76a 0%, #febc2e 68%);
+        }
+        body.electron-shell .traffic-btn.max {
+            background: radial-gradient(circle at 35% 30%, #61e26f 0%, #28c840 68%);
+        }
+        body.electron-shell .traffic-btn.close::before,
+        body.electron-shell .traffic-btn.close::after {
+            background: rgba(77, 18, 17, 0.92);
+            width: 6.5px;
+            height: 1.35px;
+            margin-left: -3.25px;
+            margin-top: -0.67px;
+        }
+        body.electron-shell .traffic-btn.min::before {
+            background: rgba(96, 66, 9, 0.94);
+            width: 6.5px;
+            height: 1.35px;
+            margin-left: -3.25px;
+            margin-top: -0.67px;
+        }
+        body.electron-shell .traffic-btn.max::before {
+            background: rgba(16, 93, 31, 0.95);
+            width: 6.6px;
+            height: 1.35px;
+            margin-left: -3.3px;
+            margin-top: -0.67px;
+            clip-path: none;
+        }
+        body.electron-shell .traffic-btn.max::after {
+            background: rgba(16, 93, 31, 0.95);
+            width: 1.35px;
+            height: 6.6px;
+            margin-left: -0.67px;
+            margin-top: -3.3px;
+            clip-path: none;
+        }
+        body.electron-shell #window-controls .traffic-btn::before,
+        body.electron-shell #window-controls .traffic-btn::after {
+            opacity: 0;
+        }
+        body.electron-shell #window-controls:hover .traffic-btn::before,
+        body.electron-shell #window-controls:hover .traffic-btn::after {
+            opacity: 1;
+        }
+        body.electron-shell .traffic-btn:hover {
+            transform: none;
+            filter: saturate(1.02) brightness(1.015);
+        }
         #status-fab {
             display: none;
         }

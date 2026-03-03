@@ -72,6 +72,31 @@ function findProjectRoot() {
   return process.cwd();
 }
 
+function resolveAppIconPath(projectRoot) {
+  const candidates = [
+    path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "icon.png"),
+    path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "128x128@2x.png"),
+    path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "128x128.png"),
+    path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "32x32.png"),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+function applyAppIcon(projectRoot) {
+  const iconPath = resolveAppIconPath(projectRoot);
+  if (!iconPath) return null;
+  const iconImg = nativeImage.createFromPath(iconPath);
+  if (iconImg.isEmpty()) return null;
+
+  if (process.platform === "darwin" && app.dock && app.dock.setIcon) {
+    app.dock.setIcon(iconImg);
+  }
+  return iconPath;
+}
+
 function readStateFile(statePath) {
   const raw = fs.readFileSync(statePath, "utf-8");
   return JSON.parse(raw);
@@ -150,8 +175,31 @@ function emitMini(event, payload) {
   miniWindow.webContents.send("tauri:event", { event, payload });
 }
 
+async function enterMiniMode(projectRoot) {
+  const snapshot = await readStateWithFallback(projectRoot).catch(() => null);
+  if (snapshot) emitMini("mini-sync-state", snapshot);
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    const bounds = mainWindow.getBounds();
+    if (miniWindow && !miniWindow.isDestroyed()) {
+      miniWindow.setBounds({ ...miniWindow.getBounds(), x: bounds.x, y: bounds.y });
+    }
+    mainWindow.hide();
+  }
+  if (miniWindow && !miniWindow.isDestroyed()) {
+    miniWindow.show();
+    miniWindow.focus();
+  }
+}
+
+async function openFrontendAndQuit() {
+  await shell.openExternal("http://127.0.0.1:18791/");
+  app.quit();
+}
+
 function createWindows(projectRoot) {
   const preloadPath = path.join(__dirname, "preload.js");
+  const appIconPath = resolveAppIconPath(projectRoot);
 
   mainWindow = new BrowserWindow({
     width: 700,
@@ -165,6 +213,7 @@ function createWindows(projectRoot) {
     maximizable: false,
     fullscreenable: false,
     hasShadow: false,
+    icon: appIconPath || undefined,
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,
@@ -196,7 +245,9 @@ function createWindows(projectRoot) {
 }
 
 function createTray(projectRoot) {
-  const iconPath = path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "32x32.png");
+  const tray32 = path.join(projectRoot, "desktop-pet", "src-tauri", "icons", "32x32.png");
+  const iconPath = fs.existsSync(tray32) ? tray32 : resolveAppIconPath(projectRoot);
+  if (!iconPath) return;
   const trayImage = nativeImage.createFromPath(iconPath);
   tray = new Tray(trayImage);
   tray.setToolTip("Star Desktop Pet");
@@ -258,18 +309,7 @@ function registerIpc(projectRoot) {
     if (cmd === "read_state") return readStateWithFallback(projectRoot);
 
     if (cmd === "enter_minimize_mode") {
-      const snapshot = await readStateWithFallback(projectRoot).catch(() => null);
-      if (snapshot) emitMini("mini-sync-state", snapshot);
-
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        const bounds = mainWindow.getBounds();
-        if (miniWindow && !miniWindow.isDestroyed()) miniWindow.setBounds({ ...miniWindow.getBounds(), x: bounds.x, y: bounds.y });
-        mainWindow.hide();
-      }
-      if (miniWindow && !miniWindow.isDestroyed()) {
-        miniWindow.show();
-        miniWindow.focus();
-      }
+      await enterMiniMode(projectRoot);
       return null;
     }
 
@@ -341,6 +381,8 @@ async function bootstrap() {
   const projectRoot = findProjectRoot();
   console.log(`project root: ${projectRoot}`);
   console.log(`state path: ${path.join(projectRoot, "state.json")}`);
+  const iconPath = applyAppIcon(projectRoot);
+  if (iconPath) console.log(`app icon: ${iconPath}`);
 
   if (!(await tcpReachable("127.0.0.1", 18791, 400))) {
     backendChild = spawnBackend(projectRoot);
