@@ -314,6 +314,32 @@ This patch focuses on **production readiness + truthful status sync**, while pre
 
 > Detailed notes: `docs/UPDATE_REPORT_2026-03-04_P0_P1.md`
 
+### G) 2026-03-05 Stability Fixes & Mobile Optimization (New)
+
+This update covers 8 commits, focusing on "frontend loading fixes + async image generation + mobile UX":
+
+1. **Frontend loading fixes**
+   - Fixed CDN caching 404 responses causing page load failure (long-cache now only for 2xx)
+   - Fixed stray `else` block in `fetchStatus()` causing JS syntax error
+
+2. **Async image generation**
+   - Room background generation now runs as a background task + frontend polling, avoiding Cloudflare 524 timeout
+   - New `GET /assets/generate-rpg-background/poll` endpoint
+   - Frontend shows real-time generation progress
+
+3. **Mobile sidebar optimization**
+   - Added backdrop overlay; tap to close drawer
+   - Body scroll lock when drawer is open, scroll position restored on close
+   - Drawer moves completely off-screen when closed (`right: -100vw`)
+   - Adapted `100dvh` + `overscroll-behavior: contain`
+
+4. **Join Key expiration & concurrency control**
+   - Key-level `expiresAt` expiration support
+   - `maxConcurrent` to control per-key concurrent online limit
+   - `join-keys.json` added to `.gitignore` (runtime data excluded from repo)
+
+> Detailed notes: `docs/UPDATE_REPORT_2026-03-05.md`
+
 ## Project structure (simplified)
 
 ```text
