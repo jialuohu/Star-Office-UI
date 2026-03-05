@@ -193,7 +193,7 @@ let waypoints = [];
 let lastWanderAt = 0;
 let coordsOverlay, coordsDisplay, coordsToggle;
 let showCoords = false;
-const FETCH_INTERVAL = 2000;
+const FETCH_INTERVAL = 500;
 const BLINK_INTERVAL = 2500;
 const BUBBLE_INTERVAL = 8000;
 const CAT_BUBBLE_INTERVAL = 18000;
@@ -201,7 +201,7 @@ let lastCatBubble = 0;
 const TYPEWRITER_DELAY = 50;
 let agents = {}; // agentId -> sprite/container
 let lastAgentsFetch = 0;
-const AGENTS_FETCH_INTERVAL = 2500;
+const AGENTS_FETCH_INTERVAL = 1000;
 
 // agent 颜色配置
 const AGENT_COLORS = {
